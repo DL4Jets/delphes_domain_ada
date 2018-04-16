@@ -3,7 +3,6 @@ import pandas as pd
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-
 from argparse import ArgumentParser
 
 parser = ArgumentParser()
@@ -17,22 +16,46 @@ ntraingings=5
 # Losses
 #
 #pd.DataFrame(np.load(  '../domada_50_epochs_newsample/domain_adaptation_two_samples/history.npy'))
-da_history   = pd.DataFrame(np.load('%s/pretrained_domain_adaptation/history.npy' % args.inputdir))
+da_history   = pd.DataFrame(np.load('%s/stepwise_domain_adaptation/history.npy' % args.inputdir))
 data_history = pd.DataFrame(np.load('%s/data_training/history.npy' % args.inputdir))
 mc_history   = pd.DataFrame(np.load('%s/MC_training/history.npy' % args.inputdir))
 
 fig = plt.figure()
 
+dataonDA='$\\bf{data}$ on $\it{D.A.}$'
+mconDA='$\\bf{mc}$ on $\it{D.A.}$'
+dataonmc='$\\bf{data}$ on $\it{mc}$'
+mconmc='$\\bf{mc}$ on $\it{mc}$'
+dataondata='$\\bf{data}$ on $\it{data}$'
+mcondata='$\\bf{mc}$ on $\it{data}$'
+
+metaleg='$\\bf{sample}$\n$\it{training}$'
+
+
+
+from mpl_toolkits.axes_grid.anchored_artists import AnchoredText
+
+
+def textonly(ax, txt, fontsize = 10, loc = 2, *args, **kwargs):
+	at = AnchoredText(txt,
+	                  prop=dict(size=fontsize), 
+	                  frameon=True,
+	                  loc=loc)
+	at.patch.set_boxstyle("round,pad=0.,rounding_size=0.2")
+	ax.add_artist(at)
+	return at
+
 def makeEpochPlot(idstring,fill):
 	
 	
 	if idstring == 'weighted_acc':
-		plt.ylim(0.45, 1.)
+		plt.ylim(0.4, 1.1)
 	else:
-		plt.ylim(0.1, 0.5)
+		plt.ylim(0.2, 0.45)
+	
 	
 	nepochs=da_history['val_data_'+idstring+'_mean'].shape[0]
-	plt.plot(da_history['val_data_'+idstring+'_mean'],label='data DA w 50 L .04', c='blue')
+	plt.plot(da_history['val_data_'+idstring+'_mean'],label=dataonDA, c='blue')
 	if fill:
 		plt.fill_between(
 			range(nepochs), 
@@ -41,7 +64,7 @@ def makeEpochPlot(idstring,fill):
 			color='blue',
 			alpha=0.3
 			)
-	plt.plot(da_history['val_mc_'+idstring+'_mean'],label='mc DA w 50 L .04', c='green',linestyle=':')
+	plt.plot(da_history['val_mc_'+idstring+'_mean'],label=mconDA, c='green',linestyle=':')
 	if fill:
 		plt.fill_between(
 			range(nepochs), 
@@ -51,16 +74,18 @@ def makeEpochPlot(idstring,fill):
 			alpha=0.3
 			)
 	
-	plt.plot(mc_history['val_data_'+idstring+'_mean'],label='data mc', c='red')
-	plt.plot(mc_history['val_mc_'+idstring+'_mean'],label='mc mc', c='blueviolet',linestyle=':')
-	plt.plot(data_history['val_data_'+idstring+'_mean'],label='data data', c='orange')
-	plt.plot(data_history['val_mc_'+idstring+'_mean'],label='mc data', c='brown',linestyle=':')
+	plt.plot(mc_history['val_data_'+idstring+'_mean'],label=dataonmc, c='red')
+	plt.plot(mc_history['val_mc_'+idstring+'_mean'],label=mconmc, c='blueviolet',linestyle=':')
+	plt.plot(data_history['val_data_'+idstring+'_mean'],label=dataondata, c='orange')
+	plt.plot(data_history['val_mc_'+idstring+'_mean'],label=mcondata, c='brown',linestyle=':')
 	
-	plt.plot(da_history['val_Add_'+idstring+'_mean'],label='ada', c='fuchsia',linestyle='--')
+	if idstring == 'weighted_acc':
+		plt.plot(da_history['val_Add_'+idstring+'_mean'],label='data/mc discr', c='fuchsia',linestyle='--')
 	
 	plt.ylabel(''+idstring+'')
 	plt.xlabel('epochs')
-	plt.legend(ncol=2, loc='best')
+	plt.legend(ncol=2, loc=1)#'best')
+	textonly(plt.gca(),metaleg,loc=3)
 	fig.savefig('%s/%s%s.png' % (args.inputdir, idstring, args.postfix))
 	fig.savefig('%s/%s%s.pdf' % (args.inputdir, idstring, args.postfix))
 	plt.clf()
@@ -99,12 +124,13 @@ from scipy.interpolate import InterpolatedUnivariateSpline
 from pdb import set_trace
 
 ## pd.DataFrame(np.load(  '../domada_50_epochs_newsample/domain_adaptation_two_samples/predictions.npy'))
-da_predictions   = pd.DataFrame(np.load('%s/pretrained_domain_adaptation/predictions.npy' % args.inputdir))
+da_predictions   = pd.DataFrame(np.load('%s/stepwise_domain_adaptation/predictions.npy' % args.inputdir))
 data_predictions = pd.DataFrame(np.load('%s/data_training/predictions.npy' % args.inputdir))
 mc_predictions   = pd.DataFrame(np.load('%s/MC_training/predictions.npy' % args.inputdir))
 
 def draw_roc(df, label, color, draw_unc=False, ls='-', draw_auc=True):
-	newx = np.logspace(-4, 0, 100)#arange(0,1,0.01)
+	newx = np.logspace(-3, 0, 50)#arange(0,1,0.01)
+	
 	tprs = pd.DataFrame()
 	scores = []
 	for idx in range(ntraingings):
@@ -116,7 +142,7 @@ def draw_roc(df, label, color, draw_unc=False, ls='-', draw_auc=True):
 		coords['fpr'] = tmp_fpr
 		coords['tpr'] = tmp_tpr
 		clean = coords.drop_duplicates(subset=['fpr'])
-		spline = InterpolatedUnivariateSpline(clean.fpr, clean.tpr)
+		spline = InterpolatedUnivariateSpline(clean.fpr, clean.tpr,k=1)
 		tprs[idx] = spline(newx)
 	scores = np.array(scores)
 	auc = ' AUC: %.3f +/- %.3f' % (scores.mean(), scores.std()) if draw_auc else ''
@@ -128,22 +154,25 @@ def draw_roc(df, label, color, draw_unc=False, ls='-', draw_auc=True):
 			color=color,
 			alpha=0.3
 			)		
+	
 	plt.plot(newx, tprs.mean(axis=1), label=label + auc, c=color, ls=ls)
+	
 	
 plt.clf()
 draw_roc(
 	da_predictions[da_predictions.isMC == 0],
-	'data DA w 50 L .04',
+	dataonDA,
 	'blue',
 	draw_unc = True,
 	draw_auc=True,
 	)
 draw_roc(
 	da_predictions[da_predictions.isMC == 1],
-	'mc DA w 50 L .04',
+	mconDA,
 	'green',
 	draw_unc = True,
 	draw_auc=True,
+	ls=':'
 	)
 
 ## da_w50_l25_pred = pd.DataFrame(np.load('../domada_50_epochs_newsample/domain_adaptation_two_samples_w50_l.25/predictions.npy'))
@@ -164,20 +193,20 @@ draw_roc(
 
 draw_roc(
 	mc_predictions[mc_predictions.isMC == 0],
-	'data mc', 'red', draw_auc=True
+	dataonmc, 'red', draw_auc=True
 	)
 draw_roc(
 	mc_predictions[mc_predictions.isMC == 1],
-	'mc mc', 'blueviolet', draw_auc=True
+	mconmc, 'blueviolet', draw_auc=True, ls=':'
 	)
 
 draw_roc(
 	data_predictions[data_predictions.isMC == 0],
-	'data data', 'orange', draw_auc=True
+	dataondata, 'orange', draw_auc=True
 	)
 draw_roc(
 	data_predictions[data_predictions.isMC == 1],
-	'mc data', 'brown', draw_auc=True
+	mcondata, 'brown', draw_auc=True, ls=':'
 	)
 
 plt.xlim(0., 1)
@@ -186,11 +215,12 @@ plt.grid(True)
 plt.ylabel('true positive rate')
 plt.xlabel('false positive rate')
 plt.legend(loc='best')
+textonly(plt.gca(),metaleg,loc=3)
 fig.savefig('%s/rocs%s.png' % (args.inputdir, args.postfix))
 fig.savefig('%s/rocs%s.pdf' % (args.inputdir, args.postfix))
 
-plt.xlim(10**-4, 1)
-plt.ylim(0., 1)
+plt.xlim(10**-3, 1)
+plt.ylim(0.3, 1)
 plt.gca().set_xscale('log')
 fig.savefig('%s/rocs_log%s.png' % (args.inputdir, args.postfix))
 fig.savefig('%s/rocs_log%s.pdf' % (args.inputdir, args.postfix))

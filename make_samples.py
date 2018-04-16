@@ -20,15 +20,36 @@ def make_sample(input_dir, add_svs):
 	# get the right labels
 	isB_all = Y_all[:,1:2]
 	isMC_all = Y_all[:,0:1]
+	
+	print(isMC_all.shape)
+	isMC_all =isMC_all.ravel()
+	print(isMC_all.shape)
+	#select MC only
+	
+	#create random isMC vector
+	#np.random.seed(1234)
+	#isMC_all = np.random.randint(2, size=X_all.shape[0])
+	#isMC_all = np.reshape(isMC_all,(isMC_all.shape[0],1))
+	
+	#print(isMC_all.shape)
 
-	X_ptRel= X_all[:,:5]
-	X_2Ds= X_all[:,5:10]
-	X_3Ds= X_all[:,10:15]
-	X_ptPro= X_all[:,15:20]
+	X_ptRel= X_all[:,:3]#5
+	X_2Ds= X_all[:,5:8]#10
+	X_3Ds= X_all[:,10:11]#15
+	X_ptPro= X_all[:,15:18]#20
 	# now we can increase the smearing
 	noise = np.random.randn(X_all.shape[0],5)*0.5
 	noise2 = np.random.randn(X_all.shape[0],5)*0.5
 	noise_uni = np.random.rand(X_all.shape[0],1) > 0.666666
+	
+	def addStretch(Xin, stretch, data):
+		if data:
+			return Xin + Xin* stretch * (isMC_all<.1) * (isB_all>.1)
+		else:
+			return Xin + Xin* stretch * (isMC_all>.1) * (isB_all>.1)
+	
+	#X_3Ds=addStretch(X_3Ds, 0.05,False)
+
 	
 	poisson_b = (np.random.rand(X_all.shape[0],1) > 0.15)*isB_all
 	poisson_qcd = (np.random.rand(X_all.shape[0],1) > 0.6)*(1-isB_all)
@@ -40,7 +61,7 @@ def make_sample(input_dir, add_svs):
 	#X_2Ds =  X_2Ds + noise * X_2Ds #* X_2Ds * (isMC_all<.1)
 	#X_ptRel= noise #* X_3Ds * (isMC_all<.1)
 	#X_ptPro= noise #* X_3Ds * (isMC_all<.1)
-	return np.concatenate([X_ptRel,X_2Ds,X_3Ds,X_ptPro,SV], axis=1), isB_all , isMC_all,
+	return np.concatenate([X_ptRel,X_2Ds,X_3Ds,X_ptPro], axis=1), isB_all , isMC_all,
 #return make_sample_old()
 
 
