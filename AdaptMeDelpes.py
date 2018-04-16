@@ -289,7 +289,7 @@ def run_model(outdir, Grad=1, known = 1,AdversOn=1,diffOn = 1):
 		)
 	elif(Grad == 'stepwise_domain_adaptation' or Grad == 'pretrained_domain_adaptation'):
 		model = modelIverseGrad(Inputs,rev_grad=args.lmb)
-		from DeepJetCore.modeltools import fixLayersContaining, setAllTrainable
+		from modeltools import fixLayersContaining, setAllTrainable
 		
 		
 		
