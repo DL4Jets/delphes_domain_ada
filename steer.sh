@@ -2,9 +2,9 @@
 
 
 #inclusive!
-lowgpu=5
+lowgpu=4
 #inclusive!
-maxgpu=7
+maxgpu=6
 
 ntrainings=5
 nprocpergpu=5
@@ -17,18 +17,19 @@ then
 	echo "specify output dir"
 	exit
 fi
-lmbs="10"
-LRs="0.002"
-weights="0.1 1"
+lmbs="30"
+LRs="0.0005"
+weights="2"
 #next run with weight 2 but in same output dir
 
 
 mkdir -p $outputdir
 
-cp AdaptMeDelpes.py $outputdir/
+cp AdaptMeDelpes2.py $outputdir/
 cp make_samples.py $outputdir/
-cp models.py $outputdir/
+cp block_models.py $outputdir/
 cp Layers.py $outputdir/
+cp modeltools.py $outputdir/
 
 ngpus=$(($maxgpu-$lowgpu))
 nprocstotal=$(($nprocpergpu*$ngpus))
@@ -38,20 +39,24 @@ nprocs=0
 procpergpu=0
 igpu=$lowgpu
 
+linkdata=/afs/cern.ch/user/j/jkiesele/work/DeepLearning/DomAdapt/delphes_domain_ada/stepwise3/0.0005/10/1/data_training
+linkmc=/afs/cern.ch/user/j/jkiesele/work/DeepLearning/DomAdapt/delphes_domain_ada/stepwise3/0.0005/10/1/MC_training
 
 
 for lmb in $lmbs; do
 	for LR in $LRs; do
 		for weight in $weights; do
 			jobout=$outputdir/$LR/$lmb/$weight
+			mkdir -p $jobout
+			#ln -s $linkdata $jobout/
+			#ln -s $linkmc $jobout/
 		
-			for method in 'pretrained_domain_adaptation' 'MC_training' 'data_training'; do	#'MC_training' 'data_training'	
+			for method in 'stepwise_domain_adaptation' 'MC_training' 'data_training'; do	#'MC_training' 'data_training'	
 				for i in $(seq $ntrainings); do
 	   
 	   				echo $jobout/$method/$i $method
 	   
-				    mkdir -p $jobout
-					python $outputdir/AdaptMeDelpes.py $jobout/$method/$i $method --weight $weight --lr $LR --lmb $lmb --gpu=$igpu --gpufraction=0.17 &> $jobout/$method.$i.log &
+					python $outputdir/AdaptMeDelpes2.py $jobout/$method/$i $method --weight $weight --lr $LR --lmb $lmb --gpu=$igpu --gpufraction=0.17 &> $jobout/$method.$i.log &
 					
 					echo "gpu ${igpu}, proc: ${procpergpu}"
 					
@@ -85,7 +90,7 @@ for lmb in $lmbs; do
 		for weight in $weights; do
 			
 			jobout=$outputdir/$LR/$lmb/$weight
-			for method in 'MC_training' 'data_training' 'pretrained_domain_adaptation'; do
+			for method in 'MC_training' 'data_training' 'stepwise_domain_adaptation'; do
 				python compute_averages.py $jobout/$method
 			done
 			python make_plots.py $jobout
