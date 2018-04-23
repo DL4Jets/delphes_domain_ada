@@ -2,8 +2,7 @@ from argparse import ArgumentParser
 import matplotlib
 matplotlib.use('Agg')
 import keras
-from keras import backend as K, callbacks
-import sys
+from keras import backend as K
 import tensorflow as tf
 import os
 from pdb import set_trace
@@ -26,17 +25,31 @@ parser.add_argument(
     "-i",  help="input directory",
     default='/data/ml/jkiesele/pheno_domAda/numpyx2/', dest='indir')
 parser.add_argument("--addsv", action='store_true')
-parser.add_argument("--gpu",  help="select specific GPU",   type=int, metavar="OPT", default=-1)
-parser.add_argument("--nopred", help="do not compute and store predictions", action='store_true')
-parser.add_argument("--lr", help="learning rate", type=float, default=0.0005)
-parser.add_argument("--weight", help="domain adaptation weight", type=float, default=2)
-parser.add_argument("--lmb", help="domain adaptation lambda", type=float, default=10)
+parser.add_argument(
+    "--gpu",  help="select specific GPU",
+    type=int, metavar="OPT", default=-1)
+parser.add_argument(
+    "--nopred", help="do not compute and store predictions",
+    action='store_true')
+parser.add_argument(
+    "--lr", help="learning rate", type=float, default=0.0005)
+parser.add_argument(
+    "--weight", help="domain adaptation weight", type=float, default=2)
+parser.add_argument(
+    "--lmb", help="domain adaptation lambda", type=float, default=10)
 parser.add_argument("--sgdf", help="SGD factor", type=float, default=1)
 parser.add_argument("--dainj", help="point to inject", type=int, default=2)
-parser.add_argument("--gpufraction",  help="select memory fraction for GPU",   type=float, metavar="OPT", default=0.17)
+parser.add_argument(
+    "--gpufraction",  help="select memory fraction for GPU",
+    type=float, metavar="OPT", default=0.17)
+parser.add_argument(
+    "--nepochs", help="number of epochs", type=int, default=200)
+parser.add_argument(
+    "--batchsize", help="batch size", type=int, default=10000)
 
 args = parser.parse_args()
-
+nepochstotal = args.nepochs
+batchsize = args.batchsize
 
 if args.gpu<0:
 	import imp
@@ -83,8 +96,6 @@ def schedule(x):
 
 
 learning_rate = keras.callbacks.LearningRateScheduler(schedule)
-nepochstotal = 10
-batchsize = 10000
 global_loss_list = {}
 
 
