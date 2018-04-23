@@ -29,7 +29,7 @@ cp AdaptMeDelpes2.py $outputdir/
 cp make_samples.py $outputdir/
 cp block_models.py $outputdir/
 cp Layers.py $outputdir/
-cp modeltools.py $outputdir/
+
 
 ngpus=$(($maxgpu-$lowgpu))
 nprocstotal=$(($nprocpergpu*$ngpus))
