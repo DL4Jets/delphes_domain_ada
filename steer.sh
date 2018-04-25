@@ -27,7 +27,7 @@ compare='corrected_domain_adaptation'
 
 mkdir -p $outputdir
 
-cp AdaptMeDelpes.py $outputdir/
+cp AdaptMeDelphes.py $outputdir/
 cp make_samples.py $outputdir/
 cp block_models.py $outputdir/
 cp Layers.py $outputdir/
@@ -59,7 +59,7 @@ for lmb in $lmbs; do
 	   
 	   				echo $jobout/$method/$i $method
 	   
-					python $outputdir/AdaptMeDelpes.py $jobout/$method/$i $method --weight $weight --lr $LR --lmb $lmb --gpu=$igpu --gpufraction=0.17 &> $jobout/$method.$i.log &
+					python $outputdir/AdaptMeDelphes.py $jobout/$method/$i $method --weight $weight --lr $LR --lmb $lmb --gpu=$igpu --gpufraction=0.17 &> $jobout/$method.$i.log &
 					
 					echo "gpu ${igpu}, proc: ${procpergpu}"
 					
