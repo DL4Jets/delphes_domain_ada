@@ -2,9 +2,9 @@
 
 
 #inclusive!
-lowgpu=4
+lowgpu=5
 #inclusive!
-maxgpu=6
+maxgpu=7
 
 ntrainings=5
 nprocpergpu=5
@@ -20,6 +20,8 @@ fi
 lmbs="30"
 LRs="0.0005"
 weights="2"
+
+compare='corrected_domain_adaptation'
 #next run with weight 2 but in same output dir
 
 
@@ -29,6 +31,7 @@ cp AdaptMeDelpes.py $outputdir/
 cp make_samples.py $outputdir/
 cp block_models.py $outputdir/
 cp Layers.py $outputdir/
+cp training_tools.py $outputdir/
 
 
 ngpus=$(($maxgpu-$lowgpu))
@@ -51,7 +54,7 @@ for lmb in $lmbs; do
 			#ln -s $linkdata $jobout/
 			#ln -s $linkmc $jobout/
 		
-			for method in 'stepwise_domain_adaptation' 'MC_training' 'data_training'; do	#'MC_training' 'data_training'	
+			for method in $compare 'MC_training' 'data_training'; do	#'MC_training' 'data_training'	
 				for i in $(seq $ntrainings); do
 	   
 	   				echo $jobout/$method/$i $method
@@ -90,10 +93,10 @@ for lmb in $lmbs; do
 		for weight in $weights; do
 			
 			jobout=$outputdir/$LR/$lmb/$weight
-			for method in 'MC_training' 'data_training' 'stepwise_domain_adaptation'; do
+			for method in 'MC_training' 'data_training' $compare; do
 				python compute_averages.py $jobout/$method
 			done
-			python make_plots.py $jobout
+			python make_plots.py $jobout -c $compare
 		done
 	done
 done

@@ -1,4 +1,5 @@
-from keras.layers import Dense, Dropout
+from keras.initializers import RandomNormal
+from keras.layers import Dense, Dropout, Multiply, Add, Concatenate
 from keras.models import Model
 from Layers import GradientReversal
 
@@ -38,8 +39,7 @@ def datamc_discriminator(XInputs, rev_grad=10, dropoutrate=0.03):
     Ad1 = Dense(
         1, activation='linear', use_bias=False, trainable=False,
         name='Add1')(Ad)
-    return Model(
-        inputs=XInputs, outputs=[Ad, Ad1], name="datamc_discriminator")
+    return Model(inputs=XInputs, outputs=[Ad, Ad1], name="datamc_discriminator")
 
 
 def btag_discriminator(XInputs, dropoutrate=0.03):
@@ -52,5 +52,28 @@ def btag_discriminator(XInputs, dropoutrate=0.03):
     X1 = Dense(
         1, activation='linear', use_bias=False, trainable=False,
         kernel_initializer='Ones', name='data')(X)
-    return Model(
-        inputs=XInputs, outputs=[X, X1], name="btag_discriminator")
+    return Model(inputs=XInputs, outputs=[X, X1], name="btag_discriminator")
+
+
+def mc_correction(XInputsList, nodes, layers=1, dropoutrate=0.03):
+
+    # the output shape of the correction should be the same as the input
+    outshape = XInputsList[0].get_shape().as_list()[1]
+
+    X = XInputsList[0]
+    isMC = XInputsList[1]
+    noise = XInputsList[2]
+    isBs = XInputsList[3]
+
+    X = Concatenate()([X, noise, isBs])
+
+    for i in range(layers):
+        X = Dense(nodes, activation='relu')(X)
+        X = Dropout(dropoutrate)(X)
+
+    X = Dense(outshape, activation='relu',
+              kernel_initializer=RandomNormal(mean=0.0, stddev=0.05))(X)
+    X = Dropout(dropoutrate)(X)
+    X = Multiply()([X, isMC])
+    X = Add()([XInputsList[0], X])
+    return Model(inputs=XInputsList, outputs=X, name="mc_correction")

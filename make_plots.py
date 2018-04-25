@@ -8,15 +8,16 @@ from argparse import ArgumentParser
 parser = ArgumentParser()
 parser.add_argument('inputdir')
 parser.add_argument("-p",  dest='postfix', default='', help="plot postfix")
+parser.add_argument("-c",  dest='compare', default='stepwise_domain_adaptation', help="training to compare data and MC to")
 args = parser.parse_args()
 
-ntraingings=5
+ntraingings = 5
 
 #
 # Losses
 #
-#pd.DataFrame(np.load(  '../domada_50_epochs_newsample/domain_adaptation_two_samples/history.npy'))
-da_history   = pd.DataFrame(np.load('%s/stepwise_domain_adaptation/history.npy' % args.inputdir))
+# pd.DataFrame(np.load(  '../domada_50_epochs_newsample/domain_adaptation_two_samples/history.npy'))
+da_history   = pd.DataFrame(np.load('%s/%s/history.npy' % (args.inputdir,args.compare)))
 data_history = pd.DataFrame(np.load('%s/data_training/history.npy' % args.inputdir))
 mc_history   = pd.DataFrame(np.load('%s/MC_training/history.npy' % args.inputdir))
 
@@ -102,7 +103,7 @@ from scipy.interpolate import InterpolatedUnivariateSpline
 from pdb import set_trace
 
 ## pd.DataFrame(np.load(  '../domada_50_epochs_newsample/domain_adaptation_two_samples/predictions.npy'))
-da_predictions   = pd.DataFrame(np.load('%s/stepwise_domain_adaptation/predictions.npy' % args.inputdir))
+da_predictions   = pd.DataFrame(np.load('%s/%s/predictions.npy' % (args.inputdir, args.compare)))
 data_predictions = pd.DataFrame(np.load('%s/data_training/predictions.npy' % args.inputdir))
 mc_predictions   = pd.DataFrame(np.load('%s/MC_training/predictions.npy' % args.inputdir))
 
