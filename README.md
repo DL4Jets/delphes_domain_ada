@@ -25,7 +25,7 @@ aklog
 
 Look at which GPus are busy by: nvidia-smi
 
-To run multiple trainings on the cmg-gpu machine, use the steer.sh script: steer.sh <output dir>. It needs to be adapted to your needs (what needs to be adapted?). Please also make sure the GPUs that you want to use are free (How?). These are defined in the beginning of the script (not tto clear?).
+To run multiple trainings on the cmg-gpu machine, use the steer.sh script: steer.sh <output dir>. It needs to be adapted to your needs (what needs to be adapted?). Please also make sure the GPUs that you want to use are free. More information can be found in the script itself.
   
 The steer script also runs the computation of averages (compute_averages.py) and the plotting (make_plots.py).
 If training parameters are changed (in particular the number of trainings per run option to assess the statistical uncertainty), the plotting and possibly the averaging script needs to be adapted.
