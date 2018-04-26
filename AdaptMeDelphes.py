@@ -187,18 +187,9 @@ def run_model(outdir, training_method=1):
 			weighted_metrics=['accuracy']
 		)
 		
-		def fixLayers(my_model):
-			for layer in my_model.layers:
-				layer.trainable = False
-			return my_model
-		
-		def openLayers(my_model):
-			for layer in my_model.layers:
-				layer.trainable=True
-			return my_model
-		
-		feat=fixLayers(feat)
-		btag=fixLayers(btag)
+	
+		feat.trainable = False
+		btag.trainable = False
 		
 		modelfixedbtag = Model(inputs=Inputs, outputs=btag(feat(Inputs))+datamc(feat(Inputs)),name='fullModel2')
 		
@@ -238,10 +229,10 @@ def run_model(outdir, training_method=1):
 								20, layers=2, dropoutrate=0.03)
 			
 			#fixLayers
-			feat=fixLayers(feat)
-			btag=fixLayers(btag)
-			datamc=openLayers(datamc)
-			mccorr=openLayers(mccorr)
+			feat.trainable = False
+			btag.trainable = False
+			datamc.trainable = True
+			mccorr.trainable = True
 			
 			datamc.get_layer('Ad_gradrev').hp_lambda=args.lmb2
 			
@@ -262,7 +253,7 @@ def run_model(outdir, training_method=1):
 				weighted_metrics=['accuracy']
 			)
 			
-			mccorr=fixLayers(mccorr)
+			mccorr.trainable = False
 			
 			datamcdiscretrainmodel=Model(inputs=AllInputs, 
 						outputs=
