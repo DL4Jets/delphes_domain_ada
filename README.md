@@ -18,7 +18,7 @@ The training is run with python AdaptMeDelphes.py <outdir> <run option>.
 To run via scripts many in trainings in parralel on GPUs at CERN, follow the below:
 
 log in CERN GPU:
-ssh cms-gpu1080
+ssh cmg-gpu1080
 refresh afs:
 kinit
 aklog
