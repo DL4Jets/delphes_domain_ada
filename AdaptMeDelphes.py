@@ -38,21 +38,35 @@ parser.add_argument("--gpufraction",  help="select memory fraction for GPU",   t
 parser.add_argument("--nepochs", help="number of epochs total", type=int, default=200)
 parser.add_argument("--nepochscorr", help="number of epochs for MC correction", type=int, default=100)
 parser.add_argument("--batchsize", help="batch size", type=int, default=10000)
+parser.add_argument("--runIC", action='store_true')
 
 args = parser.parse_args()
 
-
-if args.gpu<0:
+if args.runIC:
+    print "IC cluster settings"
     import imp
     try:
-        imp.find_module('setGPU')
-        import setGPU
+        if not os.environ.has_key('CUDA_VISIBLE_DEVICES'):
+            imp.find_module('setGPU')
+            import setGPU
+        print "Using GPU: ",os.environ['CUDA_VISIBLE_DEVICES']
     except ImportError:
-        found = False
+        pass
+
 else:
-    os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
-    os.environ['CUDA_VISIBLE_DEVICES'] = str(args.gpu)
-    print('running on GPU '+str(args.gpu))
+    print "LXPLUS settings"
+    if args.gpu<0:
+        import imp
+        try:
+            imp.find_module('setGPU')
+            import setGPU
+        except ImportError:
+            found = False
+    else:
+        os.environ['CUDA_DEVICE_ORDER'] = 'PCI_BUS_ID'
+        os.environ['CUDA_VISIBLE_DEVICES'] = str(args.gpu)
+        print('running on GPU '+str(args.gpu))
+
 
 if args.gpufraction>0 and args.gpufraction<1:
     gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=args.gpufraction)
