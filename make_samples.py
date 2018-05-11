@@ -20,26 +20,37 @@ def make_sample(input_dir, add_svs):
     isMC_all = isMC_all.ravel()
     print(isMC_all.shape)
     # select MC only
-    # create random isMC vector
-    # np.random.seed(1234)
-    # isMC_all = np.random.randint(2, size=X_all.shape[0])
-    # isMC_all = np.reshape(isMC_all,(isMC_all.shape[0],1))
-    # print(isMC_all.shape)
-    X_ptRel = X_all[:, :3]
-    X_2Ds = X_all[:, 5:8]
+    
+    if False:
+        np.random.seed(1234)
+        isMC_all = np.random.randint(2, size=X_all.shape[0])
+        isMC_all = np.reshape(isMC_all,(isMC_all.shape[0],1))
+
+    X_ptRel = X_all[:, :1]#3
+    X_2Ds = X_all[:, 5:6]#8
     X_3Ds = X_all[:, 10:11]
-    X_ptPro = X_all[:, 15:18]
+    X_ptPro = X_all[:, 15:16]#18
     # now we can increase the smearing
     # noise = np.random.randn(X_all.shape[0],5)*0.5
     # noise2 = np.random.randn(X_all.shape[0],5)*0.5
     # noise_uni = np.random.rand(X_all.shape[0],1) > 0.666666
-
-    def addStretch(Xin, stretch, data):
+    
+    def addMCStretch(Xin, stretch, data=False):
+        selected = np.array(isMC_all.ravel(), dtype='float32')#important to copy here
         if data:
-            return Xin + Xin * stretch * (isMC_all < .1) * (isB_all > .1)
-        else:
-            return Xin + Xin * stretch * (isMC_all > .1) * (isB_all > .1)
+            selected-=1
+            selected=np.abs(selected)
+        selected *= isB_all.ravel()
+        selected *= stretch
+        selected += 1
+        selected=np.reshape(selected, (selected.shape[0],1))
+        Xin = np.multiply(Xin,selected)
+        return Xin
 
+    # X_2Ds=addMCStretch(X_2Ds, 5.5)
+    # X_3Ds=addMCStretch(X_3Ds, 5.5)
+    
+    
     # poisson_b = (np.random.rand(X_all.shape[0], 1) > 0.15) * isB_all
     # poisson_qcd = (np.random.rand(X_all.shape[0], 1) > 0.6) * (1 - isB_all)
     # SV = poisson_qcd + poisson_b if add_
