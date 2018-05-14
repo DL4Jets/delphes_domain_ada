@@ -4,6 +4,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from argparse import ArgumentParser
+from pdb import set_trace
 
 parser = ArgumentParser()
 parser.add_argument('inputdir')
@@ -20,6 +21,7 @@ ntraingings = 5
 da_history   = pd.DataFrame(np.load('%s/%s/history.npy' % (args.inputdir,args.compare)))
 data_history = pd.DataFrame(np.load('%s/data_training/history.npy' % args.inputdir))
 mc_history   = pd.DataFrame(np.load('%s/MC_training/history.npy' % args.inputdir))
+set_trace()
 
 fig = plt.figure()
 
