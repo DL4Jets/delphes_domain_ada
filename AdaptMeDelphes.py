@@ -109,6 +109,7 @@ def run_model(outdir, training_method=1):
 	X_traintest, isB_traintest , isMC_traintest, weight_in_traintest, exp_weight = make_sample(
                 args.indir, args.addsv, args.skewfraction
         )
+	get_expected_weight = lambda x: exp_weight #dummy function
 
 	X_all, X_test, isB_all, isB_test, isMC_all, isMC_test, weight_in_all, weight_in_test = train_test_split(
                 X_traintest, isB_traintest , isMC_traintest, weight_in_traintest, test_size=0.1, random_state=42
@@ -205,12 +206,14 @@ def run_model(outdir, training_method=1):
                 hist_prebtag = {}
                 if args.pretrainbtag:
                         print 'pre-training the b-tag classifier'
+			datamc = set_trainable(datamc, 'weight_*', False)
                         modelallopen.compile(
                                 loss = ['binary_crossentropy']*2+[binary_crossentropy_labelweights, 'binary_crossentropy'],
-                                optimizer = optimizer, 
+                                optimizer = Adam(lr=args.lr),
                                 loss_weights = [1.,0.,0.,0.],
                                 weighted_metrics = metrics_dict
                         )
+
                         hist_prebtag = modelallopen.fit(
                                 [X_all, weight_in_all],
                                 [isB_all, isB_all, isMC_all, isMC_all], 
@@ -222,6 +225,9 @@ def run_model(outdir, training_method=1):
                                         onesarray, 
                                         onesarray],
                         ).history
+			hist_prebtag['weight'] = [get_weight(modelallopen)]*len(hist_prebtag['loss'])
+			hist_prebtag['real_weight'] = [get_expected_weight(modelallopen)]*len(hist_prebtag['loss'])
+			datamc = set_trainable(datamc, 'weight_*', not args.fixweights)
 	
 		modelallopen.compile(
 			loss = ['binary_crossentropy']*2+[binary_crossentropy_labelweights, 'binary_crossentropy'],
@@ -242,13 +248,14 @@ def run_model(outdir, training_method=1):
                 hist_predatamc = {}
                 if args.pretraindatamc:
                         print 'pre-training the data/MC classifier'
+
                         modelfixedbtag.compile(
                                 loss = ['binary_crossentropy']*2+[binary_crossentropy_labelweights, 'binary_crossentropy'],
-                                optimizer = optimizer, 
-                                loss_weights = [0.,0.,1.,0.],
+                                optimizer = Adam(lr=args.lr),
+                                loss_weights = [0.,0.,args.weight,0.],
                                 weighted_metrics = metrics_dict
                         )		                        
-                        hist_predatamc = modelallopen.fit(
+                        hist_predatamc = modelfixedbtag.fit(
                                 [X_all, weight_in_all],
                                 [isB_all, isB_all, isMC_all, isMC_all], 
                                 batch_size=batchsize, epochs=args.pretraindatamc,
@@ -259,6 +266,8 @@ def run_model(outdir, training_method=1):
                                         onesarray, 
                                         onesarray],
                         ).history
+			hist_predatamc['weight'] = [get_weight(modelfixedbtag)]*len(hist_predatamc['loss'])
+			hist_predatamc['real_weight'] = [get_expected_weight(modelfixedbtag)]*len(hist_predatamc['loss'])
                         
 
 		modelfixedbtag.compile(
@@ -284,7 +293,11 @@ def run_model(outdir, training_method=1):
 			nstepspermodel=None, 
 			custombatchgenerators=None, 
 			verbose=1,
-                        history_addenda = {'weight' : get_weight})
+                        history_addenda = {
+				'weight' : get_weight,
+				'real_weight' : get_expected_weight,
+				}
+			)
 
 		
 		history=pd.DataFrame(history)

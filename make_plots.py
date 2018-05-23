@@ -21,7 +21,6 @@ ntraingings = 5
 da_history   = pd.DataFrame(np.load('%s/%s/history.npy' % (args.inputdir,args.compare)))
 data_history = pd.DataFrame(np.load('%s/data_training/history.npy' % args.inputdir))
 mc_history   = pd.DataFrame(np.load('%s/MC_training/history.npy' % args.inputdir))
-set_trace()
 
 fig = plt.figure()
 
@@ -96,9 +95,23 @@ def makeEpochPlot(idstring,fill):
 	
 
 makeEpochPlot('loss',True)
-makeEpochPlot('weighted_acc',False)
+makeEpochPlot('weighted_binary_accuracy',False)
 
-
+#plot weights
+plt.clf()
+plt.plot(da_history.index, da_history.weight_mean, label='fitted weight', color='blue')
+plt.fill_between(
+	da_history.index,
+	da_history.weight_mean - da_history.weight_std,
+	da_history.weight_mean + da_history.weight_std,
+	color='blue', alpha=0.3
+	)
+plt.plot([da_history.index.min(), da_history.index.max()], [da_history.real_weight_mean, da_history.real_weight_mean], label='best value', ls='--')
+plt.xlabel('epoch')
+plt.ylabel('weight')
+#plt.legend(loc='best')
+plt.grid(True)
+plt.savefig('%s/weights%s.png' % (args.inputdir, args.postfix))
 
 from sklearn.metrics import roc_curve, roc_auc_score
 from scipy.interpolate import InterpolatedUnivariateSpline
