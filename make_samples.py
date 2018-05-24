@@ -1,4 +1,5 @@
 import numpy as np
+np.random.seed(1234567)
 from glob import glob
 from pdb import set_trace
 
@@ -20,7 +21,6 @@ def make_sample(input_dir, add_svs, keep_probability=None): #default value tuned
     print(isMC_all.shape)
     # select MC only
     if False:
-        np.random.seed(1234)
         isMC_all = np.random.randint(2, size=X_all.shape[0])
         isMC_all = np.reshape(isMC_all,(isMC_all.shape[0],1))
 
@@ -28,7 +28,7 @@ def make_sample(input_dir, add_svs, keep_probability=None): #default value tuned
     X_2Ds = X_all[:, 5:8]
 
     X_3Ds = X_all[:, 10:11]
-    X_ptPro = X_all[:, 15:16]#18
+    X_ptPro = X_all[:, 15:18]
     # now we can increase the smearing
     # noise = np.random.randn(X_all.shape[0],5)*0.5
     # noise2 = np.random.randn(X_all.shape[0],5)*0.5
