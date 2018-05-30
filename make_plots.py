@@ -78,7 +78,23 @@ def makeEpochPlot(idstring,fill):
 			)
 	
 	plt.plot(mc_history['val_btag_discriminator_'+idstring+'_2_mean'],label=dataonmc, c='red')
+	if fill:
+		plt.fill_between(
+			range(nepochs), 
+			mc_history['val_btag_discriminator_'+idstring+'_2_mean']-mc_history['val_btag_discriminator_'+idstring+'_2_std'], 
+			mc_history['val_btag_discriminator_'+idstring+'_2_mean']+mc_history['val_btag_discriminator_'+idstring+'_2_std'], 
+			color='red',
+			alpha=0.3
+			)
 	plt.plot(mc_history['val_btag_discriminator_'+idstring+'_1_mean'],label=mconmc, c='blueviolet',linestyle=':')
+	if fill:
+		plt.fill_between(
+			range(nepochs), 
+			mc_history['val_btag_discriminator_'+idstring+'_1_mean']-mc_history['val_btag_discriminator_'+idstring+'_1_std'], 
+			mc_history['val_btag_discriminator_'+idstring+'_1_mean']+mc_history['val_btag_discriminator_'+idstring+'_1_std'], 
+			color='blueviolet',
+			alpha=0.3
+			)
 	plt.plot(data_history['val_btag_discriminator_'+idstring+'_2_mean'],label=dataondata, c='orange')
 	plt.plot(data_history['val_btag_discriminator_'+idstring+'_1_mean'],label=mcondata, c='brown',linestyle=':')
 	
