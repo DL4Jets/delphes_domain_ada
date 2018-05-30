@@ -20,7 +20,7 @@ def make_sample(input_dir, add_svs, keep_probability=None): #default value tuned
     isMC_all = isMC_all.ravel()
     print(isMC_all.shape)
     # select MC only
-    if False:
+    if True:
         isMC_all = np.random.randint(2, size=X_all.shape[0])
         isMC_all = np.reshape(isMC_all,(isMC_all.shape[0],1))
 
@@ -46,8 +46,8 @@ def make_sample(input_dir, add_svs, keep_probability=None): #default value tuned
         Xin = np.multiply(Xin,selected)
         return Xin
 
-    # X_2Ds=addMCStretch(X_2Ds, 5.5)
-    # X_3Ds=addMCStretch(X_3Ds, 5.5)
+    X_2Ds=addMCStretch(X_2Ds, 0.1)
+    X_3Ds=addMCStretch(X_3Ds, 0.1)
     
     
     # poisson_b = (np.random.rand(X_all.shape[0], 1) > 0.15) * isB_all
