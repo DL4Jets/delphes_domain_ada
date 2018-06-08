@@ -1,5 +1,6 @@
 from keras.initializers import RandomNormal
-from keras.layers import Dense, Dropout, Multiply, Add, Concatenate
+from keras.layers import Dense, Dropout, Multiply, Add, \
+    Concatenate, Reshape, LocallyConnected1D, Flatten
 from keras.models import Model
 from Layers import GradientReversal
 
@@ -15,30 +16,44 @@ def common_features(Inputs, dropoutrate=0.03):
     X = Inputs
     X = Dense(30, activation='relu', name='common_dense_0')(X)
     X = Dropout(dropoutrate)(X)
-    X = Dense(20, activation='relu')(X)
+    X = Dense(20, activation='relu', name='common_dense_1')(X)
     X = Dropout(dropoutrate)(X)
-    X = Dense(20, activation='relu')(X)
+    X = Dense(20, activation='relu', name='common_dense_2')(X)
     X = Dropout(dropoutrate)(X)
-    X = Dense(15, activation='relu')(X)
+    X = Dense(15, activation='relu', name='common_dense_3')(X)
     X = Dropout(dropoutrate)(X)
     return Model(inputs=Inputs, outputs=X, name='common_features')
 
 
-def datamc_discriminator(XInputs, rev_grad=10, dropoutrate=0.03):
-    Ad = GradientReversal(hp_lambda=rev_grad, name='Ad_gradrev')(XInputs)
-    Ad = Dense(20, activation='relu')(Ad)
+def datamc_discriminator(XInputs, rev_grad=10, dropoutrate=0.03, weight_rev=10.):
+    Ad = GradientReversal(hp_lambda=rev_grad, name='ada_gradrev')(XInputs[0])
+    Ad = Dense(20, activation='relu', name='ada_dense_0')(Ad)
     Ad = Dropout(dropoutrate)(Ad)
-    Ad = Dense(15, activation='relu')(Ad)
+    Ad = Dense(15, activation='relu', name='ada_dense_1')(Ad)
     Ad = Dropout(dropoutrate)(Ad)
-    Ad = Dense(15, activation='relu')(Ad)
+    Ad = Dense(15, activation='relu', name='ada_dense_2')(Ad)
     Ad = Dropout(dropoutrate)(Ad)
-    Ad = Dense(10, activation='relu')(Ad)
+    Ad = Dense(10, activation='relu', name='ada_dense_3')(Ad)
     Ad = Dropout(dropoutrate)(Ad)
-    Ad = Dense(1, activation='sigmoid', name='Add')(Ad)
+    Ad = Dense(1, activation='sigmoid', name='ada_out')(Ad)
     # just for compatibility for now
     Ad1 = Dense(
         1, activation='linear', use_bias=False, trainable=False,
         name='Add1')(Ad)
+
+    #make tunable weight
+    weight = Reshape((1,1),name='weight_reshape')(XInputs[1])
+    weight = LocallyConnected1D(
+	1,1, 
+	activation='linear', use_bias=False, 
+	kernel_initializer='zeros',
+	name="weight_layer",
+	#kernel_regularizer=boundary_regularizer,
+	) (weight)    
+    weight= Flatten()(weight)
+    weight = GradientReversal(name='weight_reversal', hp_lambda=weight_rev)(weight)
+    Ad = Concatenate(name='ada_weight')([Ad, weight]) 
+
     return Model(inputs=XInputs, outputs=[Ad, Ad1], name="datamc_discriminator")
 
 

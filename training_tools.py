@@ -3,7 +3,7 @@ from __future__ import print_function
 import numpy as np
 from sklearn.utils import shuffle
 from random import randint
-
+from pdb import set_trace
 
 def train_models_adversarial(modellist,
                              x,
@@ -15,7 +15,8 @@ def train_models_adversarial(modellist,
                              nstepspermodel=None,
                              custombatchgenerators=None,
                              modify_labels=None,
-                             verbose=0):
+                             verbose=0,
+                             history_addenda={}):
     '''
     modellist,x,y,sample_weight need to be lists, even if only one entry
    
@@ -33,12 +34,15 @@ def train_models_adversarial(modellist,
     modify_labels: applies user defined function to the label list. Needs to be a list
     with same length as the model list. This function will be called for each batch, so keep it simple
     
+    history_addenda is a string : function dictionary, with the function acting on the model outputing a
+    float, such float gets added to the output history
     '''
 
     # create the batches
     totalsize = x[0].shape[0]
     ntrainbatches = int((1-validation_split)*totalsize/batch_size)
 
+    history = {i: [] for i in history_addenda}
     split = []
     # make split - last split will be val sample
     for i in range(ntrainbatches):
@@ -170,6 +174,9 @@ def train_models_adversarial(modellist,
         valhist.append(model.test_on_batch(x_val, y_val, 
                                            sample_weight = sw_splitval))
 
+        for name, fcn in history_addenda.iteritems():
+            history[name].append(fcn(model))
+
         if verbose > 0:
             for i in range(len(usedmetrics)):
                 print(usedmetrics[i]+": "+str(trainhist[-1][i]), end=' - ')
@@ -177,7 +184,6 @@ def train_models_adversarial(modellist,
                 print("val_"+usedmetrics[i]+": "+str(valhist[-1][i]), end=' - ')
             print('\n')
 
-    history = {}
 
     # use usedmetrics to make dict out of it
     for i in range(len(usedmetrics)):
